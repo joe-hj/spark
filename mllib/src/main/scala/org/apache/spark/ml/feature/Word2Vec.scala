@@ -225,7 +225,7 @@ class Word2VecModel private[ml] (
       .mapValues(vv => Vectors.dense(vv.map(_.toDouble)))
       .map(identity) // mapValues doesn't return a serializable map (SI-7005)
     val bVectors = dataset.sparkSession.sparkContext.broadcast(vectors)
-    val d = $(vectorSize)
+    val d = vectors.head._2.size
     val word2Vec = udf { sentence: Seq[String] =>
       if (sentence.isEmpty) {
         Vectors.sparse(d, Array.empty[Int], Array.empty[Double])
