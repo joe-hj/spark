@@ -610,6 +610,10 @@ setGeneric("write.jdbc", function(x, url, tableName, mode = "error", ...) {
 #' @export
 setGeneric("write.json", function(x, path) { standardGeneric("write.json") })
 
+#' @rdname write.orc
+#' @export
+setGeneric("write.orc", function(x, path) { standardGeneric("write.orc") })
+
 #' @rdname write.parquet
 #' @export
 setGeneric("write.parquet", function(x, path) { standardGeneric("write.parquet") })
@@ -992,6 +996,11 @@ setGeneric("md5", function(x) { standardGeneric("md5") })
 #' @rdname minute
 #' @export
 setGeneric("minute", function(x) { standardGeneric("minute") })
+
+#' @rdname monotonically_increasing_id
+#' @export
+setGeneric("monotonically_increasing_id",
+           function(x) { standardGeneric("monotonically_increasing_id") })
 
 #' @rdname month
 #' @export

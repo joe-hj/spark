@@ -68,6 +68,7 @@ mockLines <- c("{\"name\":\"Michael\"}",
                "{\"name\":\"Justin\", \"age\":19}")
 jsonPath <- tempfile(pattern = "sparkr-test", fileext = ".tmp")
 parquetPath <- tempfile(pattern = "sparkr-test", fileext = ".parquet")
+orcPath <- tempfile(pattern = "sparkr-test", fileext = ".orc")
 writeLines(mockLines, jsonPath)
 
 # For test nafunctions, like dropna(), fillna(),...
@@ -472,8 +473,8 @@ test_that("test tableNames and tables", {
   suppressWarnings(registerTempTable(df, "table2"))
   tables <- tables()
   expect_equal(count(tables), 2)
-  dropTempTable("table1")
-  dropTempTable("table2")
+  suppressWarnings(dropTempTable("table1"))
+  dropTempView("table2")
 
   tables <- tables()
   expect_equal(count(tables), 0)
@@ -486,7 +487,7 @@ test_that(
   newdf <- sql("SELECT * FROM table1 where name = 'Michael'")
   expect_is(newdf, "SparkDataFrame")
   expect_equal(count(newdf), 1)
-  dropTempTable("table1")
+  dropTempView("table1")
 })
 
 test_that("test cache, uncache and clearCache", {
@@ -495,7 +496,7 @@ test_that("test cache, uncache and clearCache", {
   cacheTable("table1")
   uncacheTable("table1")
   clearCache()
-  dropTempTable("table1")
+  dropTempView("table1")
 })
 
 test_that("insertInto() on a registered table", {
@@ -516,13 +517,13 @@ test_that("insertInto() on a registered table", {
   insertInto(dfParquet2, "table1")
   expect_equal(count(sql("select * from table1")), 5)
   expect_equal(first(sql("select * from table1 order by age"))$name, "Michael")
-  dropTempTable("table1")
+  dropTempView("table1")
 
   createOrReplaceTempView(dfParquet, "table1")
   insertInto(dfParquet2, "table1", overwrite = TRUE)
   expect_equal(count(sql("select * from table1")), 2)
   expect_equal(first(sql("select * from table1 order by age"))$name, "Bob")
-  dropTempTable("table1")
+  dropTempView("table1")
 
   unlink(jsonPath2)
   unlink(parquetPath2)
@@ -536,7 +537,7 @@ test_that("tableToDF() returns a new DataFrame", {
   expect_equal(count(tabledf), 3)
   tabledf2 <- tableToDF("table1")
   expect_equal(count(tabledf2), 3)
-  dropTempTable("table1")
+  dropTempView("table1")
 })
 
 test_that("toRDD() returns an RRDD", {
@@ -1047,7 +1048,7 @@ test_that("column functions", {
   c5 <- hour(c) + initcap(c) + last(c) + last_day(c) + length(c)
   c6 <- log(c) + (c) + log1p(c) + log2(c) + lower(c) + ltrim(c) + max(c) + md5(c)
   c7 <- mean(c) + min(c) + month(c) + negate(c) + quarter(c)
-  c8 <- reverse(c) + rint(c) + round(c) + rtrim(c) + sha1(c)
+  c8 <- reverse(c) + rint(c) + round(c) + rtrim(c) + sha1(c) + monotonically_increasing_id()
   c9 <- signum(c) + sin(c) + sinh(c) + size(c) + stddev(c) + soundex(c) + sqrt(c) + sum(c)
   c10 <- sumDistinct(c) + tan(c) + tanh(c) + toDegrees(c) + toRadians(c)
   c11 <- to_date(c) + trim(c) + unbase64(c) + unhex(c) + upper(c)
@@ -1665,6 +1666,25 @@ test_that("mutate(), transform(), rename() and names()", {
   expect_equal(nrow(result), 153)
   expect_equal(ncol(result), 2)
   detach(airquality)
+})
+
+test_that("read/write ORC files", {
+  df <- read.df(jsonPath, "json")
+
+  # Test write.df and read.df
+  write.df(df, orcPath, "orc", mode = "overwrite")
+  df2 <- read.df(orcPath, "orc")
+  expect_is(df2, "SparkDataFrame")
+  expect_equal(count(df), count(df2))
+
+  # Test write.orc and read.orc
+  orcPath2 <- tempfile(pattern = "orcPath2", fileext = ".orc")
+  write.orc(df, orcPath2)
+  orcDF <- read.orc(orcPath2)
+  expect_is(orcDF, "SparkDataFrame")
+  expect_equal(count(orcDF), count(df))
+
+  unlink(orcPath2)
 })
 
 test_that("read/write Parquet files", {
@@ -2351,5 +2371,6 @@ test_that("enableHiveSupport on SparkSession", {
 })
 
 unlink(parquetPath)
+unlink(orcPath)
 unlink(jsonPath)
 unlink(jsonPathNa)
