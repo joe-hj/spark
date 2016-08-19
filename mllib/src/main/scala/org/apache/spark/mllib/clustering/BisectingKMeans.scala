@@ -56,7 +56,8 @@ class BisectingKMeans private (
     private var k: Int,
     private var maxIterations: Int,
     private var minDivisibleClusterSize: Double,
-    private var seed: Long) extends Logging {
+    private var seed: Long,
+    private var distanceMetric: String = "fastSquaredDistance") extends Logging {
 
   import BisectingKMeans._
 
@@ -132,6 +133,14 @@ class BisectingKMeans private (
    */
   @Since("1.6.0")
   def getSeed: Long = this.seed
+
+  def getDistanceMetric: String = distanceMetric
+
+  def setDistanceMetric(distanceMetric: String): this.type = {
+    KMeans.validateDistanceMetric(distanceMetric)
+    this.distanceMetric = distanceMetric
+    this
+  }
 
   /**
    * Runs the bisecting k-means algorithm.
@@ -339,7 +348,7 @@ private object BisectingKMeans extends Serializable {
       if (divisibleIndices.contains(index)) {
         val children = Seq(leftChildIndex(index), rightChildIndex(index))
         val selected = children.minBy { child =>
-          KMeans.fastSquaredDistance(newClusterCenters(child), v)
+          KMeans.vecDistance(newClusterCenters(child), v)
         }
         (selected, v)
       } else {
@@ -372,7 +381,7 @@ private object BisectingKMeans extends Serializable {
         val leftIndex = leftChildIndex(rawIndex)
         val rightIndex = rightChildIndex(rawIndex)
         val height = math.sqrt(Seq(leftIndex, rightIndex).map { childIndex =>
-          KMeans.fastSquaredDistance(center, clusters(childIndex).center)
+          KMeans.vecDistance(center, clusters(childIndex).center)
         }.max)
         val left = buildSubTree(leftIndex)
         val right = buildSubTree(rightIndex)
@@ -443,7 +452,7 @@ private[clustering] class ClusteringTreeNode private[clustering] (
       this :: Nil
     } else {
       val selected = children.minBy { child =>
-        KMeans.fastSquaredDistance(child.centerWithNorm, pointWithNorm)
+        KMeans.vecDistance(child.centerWithNorm, pointWithNorm)
       }
       selected :: selected.predictPath(pointWithNorm)
     }
@@ -461,7 +470,7 @@ private[clustering] class ClusteringTreeNode private[clustering] (
    * Predicts the cluster index and the cost of the input point.
    */
   private def predict(pointWithNorm: VectorWithNorm): (Int, Double) = {
-    predict(pointWithNorm, KMeans.fastSquaredDistance(centerWithNorm, pointWithNorm))
+    predict(pointWithNorm, KMeans.vecDistance(centerWithNorm, pointWithNorm))
   }
 
   /**
@@ -476,7 +485,7 @@ private[clustering] class ClusteringTreeNode private[clustering] (
       (index, cost)
     } else {
       val (selectedChild, minCost) = children.map { child =>
-        (child, KMeans.fastSquaredDistance(child.centerWithNorm, pointWithNorm))
+        (child, KMeans.vecDistance(child.centerWithNorm, pointWithNorm))
       }.minBy(_._2)
       selectedChild.predict(pointWithNorm, minCost)
     }

@@ -517,6 +517,26 @@ object MLUtils extends Logging {
     sqDist
   }
 
+  private[mllib] def cosineDistance(
+      v1: Vector,
+      norm1: Double,
+      v2: Vector,
+      norm2: Double,
+      precision: Double = 1e-6): Double = {
+    val dotValue = dot(v1, v2)
+    dotValue / (norm1 * norm2)
+  }
+
+  private[mllib] def tanimotoDistance(
+      v1: Vector,
+      norm1: Double,
+      v2: Vector,
+      norm2: Double,
+      precision: Double = 1e-6): Double = {
+    val dotValue = dot(v1, v2)
+    dotValue / (norm1 * norm1 + norm2 * norm2 - dotValue)
+  }
+
   /**
    * When `x` is positive and large, computing `math.log(1 + math.exp(x))` will lead to arithmetic
    * overflow. This will happen when `x > 709.78` which is not a very large number.

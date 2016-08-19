@@ -321,7 +321,7 @@ class KMeans private (
           if (count != 0) {
             scal(1.0 / count, sum)
             val newCenter = new VectorWithNorm(sum)
-            if (KMeans.fastSquaredDistance(newCenter, centers(run)(j)) > epsilon * epsilon) {
+            if (KMeans.vecDistance(newCenter, centers(run)(j)) > epsilon * epsilon) {
               changed = true
             }
             centers(run)(j) = newCenter
@@ -493,6 +493,10 @@ object KMeans {
   @Since("0.8.0")
   val K_MEANS_PARALLEL = "k-means||"
 
+  val FAST_SQUARED_DISTANCE = "fastSquaredDistance"
+  val COSINE_DISTANCE = "cosineDistance"
+  val TANIMOTO_DISTANCE = "tanimotoDistance"
+
   /**
    * Trains a k-means model using the given set of parameters.
    *
@@ -581,7 +585,7 @@ object KMeans {
       var lowerBoundOfSqDist = center.norm - point.norm
       lowerBoundOfSqDist = lowerBoundOfSqDist * lowerBoundOfSqDist
       if (lowerBoundOfSqDist < bestDistance) {
-        val distance: Double = fastSquaredDistance(center, point)
+        val distance: Double = vecDistance(center, point)
         if (distance < bestDistance) {
           bestDistance = distance
           bestIndex = i
@@ -604,16 +608,30 @@ object KMeans {
    * Returns the squared Euclidean distance between two vectors computed by
    * [[org.apache.spark.mllib.util.MLUtils#fastSquaredDistance]].
    */
-  private[clustering] def fastSquaredDistance(
-      v1: VectorWithNorm,
-      v2: VectorWithNorm): Double = {
-    MLUtils.fastSquaredDistance(v1.vector, v1.norm, v2.vector, v2.norm)
+  private[clustering] def vecDistance(v1: VectorWithNorm, v2: VectorWithNorm,
+      distanceMetric: String = KMeans.FAST_SQUARED_DISTANCE): Double = {
+    distanceMetric match {
+      case KMeans.FAST_SQUARED_DISTANCE =>
+        MLUtils.fastSquaredDistance(v1.vector, v1.norm, v2.vector, v2.norm)
+      case KMeans.COSINE_DISTANCE =>
+        MLUtils.cosineDistance(v1.vector, v1.norm, v2.vector, v2.norm)
+      case KMeans.TANIMOTO_DISTANCE =>
+        MLUtils.tanimotoDistance(v1.vector, v1.norm, v2.vector, v2.norm)
+      case _ => 0.0
+    }
   }
 
   private[spark] def validateInitMode(initMode: String): Boolean = {
     initMode match {
       case KMeans.RANDOM => true
       case KMeans.K_MEANS_PARALLEL => true
+      case _ => false
+    }
+  }
+
+  private[spark] def validateDistanceMetric(distanceMetric: String): Boolean = {
+    distanceMetric match {
+      case KMeans.FAST_SQUARED_DISTANCE | KMeans.COSINE_DISTANCE | KMeans.TANIMOTO_DISTANCE => true
       case _ => false
     }
   }
