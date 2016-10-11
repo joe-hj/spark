@@ -52,6 +52,7 @@ private[hive] object SparkSQLEnv extends Logging {
         .set(
           "spark.kryo.referenceTracking",
           maybeKryoReferenceTracking.getOrElse("false"))
+        .setMaster("local[*]")
 
       sparkContext = new SparkContext(sparkConf)
       sparkContext.addSparkListener(new StatsReportListener())
