@@ -20,6 +20,7 @@ package org.apache.spark.sql.hive.thriftserver.server
 import java.util.{Map => JMap}
 
 import scala.collection.mutable.Map
+import scala.collection.JavaConverters._
 
 import org.apache.hive.service.cli._
 import org.apache.hive.service.cli.operation.{ExecuteStatementOperation, Operation, OperationManager}
@@ -49,6 +50,7 @@ private[thriftserver] class SparkSQLOperationManager()
       async: Boolean): ExecuteStatementOperation = synchronized {
     val sqlContext = sessionToContexts(parentSession.getSessionHandle)
     val sessionState = sqlContext.sessionState.asInstanceOf[HiveSessionState]
+    sessionState.setHiveVariables(parentSession.getSessionState.getHiveVariables.asScala.toMap)
     val runInBackground = async && sessionState.hiveThriftServerAsync
     val operation = new SparkExecuteStatementOperation(parentSession, statement, confOverlay,
       runInBackground)(sqlContext, sessionToActivePool)

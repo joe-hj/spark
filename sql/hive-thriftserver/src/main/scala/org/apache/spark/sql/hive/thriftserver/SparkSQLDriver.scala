@@ -29,6 +29,7 @@ import org.apache.hadoop.hive.ql.processors.CommandProcessorResponse
 import org.apache.spark.internal.Logging
 import org.apache.spark.sql.{AnalysisException, SQLContext}
 import org.apache.spark.sql.execution.QueryExecution
+import org.apache.spark.sql.hive.HiveSessionState
 
 
 private[hive] class SparkSQLDriver(val context: SQLContext = SparkSQLEnv.sqlContext)
@@ -96,4 +97,14 @@ private[hive] class SparkSQLDriver(val context: SQLContext = SparkSQLEnv.sqlCont
     hiveResponse = null
     tableSchema = null
   }
+
+  def setHiveVariables(variables: Map[String, String]): Unit = {
+    val sessionState = context.sessionState
+    sessionState match {
+      case s: HiveSessionState =>
+        sessionState.asInstanceOf[HiveSessionState].setHiveVariables(variables)
+      case _ =>
+    }
+  }
+
 }

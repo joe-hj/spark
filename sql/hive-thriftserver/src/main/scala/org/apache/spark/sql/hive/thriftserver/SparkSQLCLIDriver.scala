@@ -322,6 +322,7 @@ private[hive] class SparkSQLCLIDriver extends CliDriver with Logging {
           val driver = new SparkSQLDriver
 
           driver.init()
+          driver.setHiveVariables(sessionState.getHiveVariables.asScala.toMap)
           val out = sessionState.out
           val err = sessionState.err
           val start: Long = System.currentTimeMillis()

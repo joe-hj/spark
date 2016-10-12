@@ -150,4 +150,10 @@ private[hive] class HiveSessionState(sparkSession: SparkSession)
       "spark.sql.hive.thriftServer.singleSession", defaultValue = false)
   }
 
+  def setHiveVariables(hiveVariables: Map[String, String]): Unit = {
+    for ((key, value) <- hiveVariables) {
+      conf.setConfString(key, value)
+    }
+  }
+
 }
