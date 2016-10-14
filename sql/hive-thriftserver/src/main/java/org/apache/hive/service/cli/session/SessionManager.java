@@ -242,7 +242,7 @@ public class SessionManager extends CompositeService {
     HiveSession session;
     // If doAs is set to true for HiveServer2, we will create a proxy object for the session impl.
     // Within the proxy object, we wrap the method call in a UserGroupInformation#doAs
-    if (withImpersonation) {
+    if (withImpersonation) { //TODO: may be add code here. ---- wangyuming
       HiveSessionImplwithUGI sessionWithUGI = new HiveSessionImplwithUGI(protocol, username, password,
           hiveConf, ipAddress, delegationToken);
       session = HiveSessionProxy.getProxy(sessionWithUGI, sessionWithUGI.getSessionUgi());
