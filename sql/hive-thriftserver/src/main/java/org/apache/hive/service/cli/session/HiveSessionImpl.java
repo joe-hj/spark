@@ -44,7 +44,6 @@ import org.apache.hadoop.hive.ql.exec.Utilities;
 import org.apache.hadoop.hive.ql.history.HiveHistory;
 import org.apache.hadoop.hive.ql.metadata.Hive;
 import org.apache.hadoop.hive.ql.metadata.HiveException;
-import org.apache.hadoop.hive.ql.processors.SetProcessor;
 import org.apache.hadoop.hive.ql.session.SessionState;
 import org.apache.hadoop.hive.shims.ShimLoader;
 import org.apache.hive.common.util.HiveVersionInfo;
@@ -70,6 +69,7 @@ import org.apache.hive.service.cli.operation.Operation;
 import org.apache.hive.service.cli.operation.OperationManager;
 import org.apache.hive.service.cli.thrift.TProtocolVersion;
 import org.apache.hive.service.server.ThreadWithGarbageCleanup;
+import org.apache.hive.service.ql.processors.SparkSQLSetProcessor;
 
 /**
  * HiveSession
@@ -209,7 +209,7 @@ public class HiveSessionImpl implements HiveSession {
       String key = entry.getKey();
       if (key.startsWith("set:")) {
         try {
-          SetProcessor.setVariable(key.substring(4), entry.getValue());
+          SparkSQLSetProcessor.setVariable(key.substring(4), entry.getValue());
         } catch (Exception e) {
           throw new HiveSQLException(e);
         }

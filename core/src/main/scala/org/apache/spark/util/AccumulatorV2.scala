@@ -288,6 +288,7 @@ class LongAccumulator extends AccumulatorV2[jl.Long, jl.Long] {
 
   /**
    * Adds v to the accumulator, i.e. increment sum by v and count by 1.
+   *
    * @since 2.0.0
    */
   override def isZero: Boolean = _sum == 0L && _count == 0
@@ -306,6 +307,7 @@ class LongAccumulator extends AccumulatorV2[jl.Long, jl.Long] {
 
   /**
    * Adds v to the accumulator, i.e. increment sum by v and count by 1.
+   *
    * @since 2.0.0
    */
   override def add(v: jl.Long): Unit = {
@@ -315,6 +317,7 @@ class LongAccumulator extends AccumulatorV2[jl.Long, jl.Long] {
 
   /**
    * Adds v to the accumulator, i.e. increment sum by v and count by 1.
+   *
    * @since 2.0.0
    */
   def add(v: Long): Unit = {
@@ -324,18 +327,21 @@ class LongAccumulator extends AccumulatorV2[jl.Long, jl.Long] {
 
   /**
    * Returns the number of elements added to the accumulator.
+   *
    * @since 2.0.0
    */
   def count: Long = _count
 
   /**
    * Returns the sum of elements added to the accumulator.
+   *
    * @since 2.0.0
    */
   def sum: Long = _sum
 
   /**
    * Returns the average of elements added to the accumulator.
+   *
    * @since 2.0.0
    */
   def avg: Double = _sum.toDouble / _count
@@ -381,6 +387,7 @@ class DoubleAccumulator extends AccumulatorV2[jl.Double, jl.Double] {
 
   /**
    * Adds v to the accumulator, i.e. increment sum by v and count by 1.
+   *
    * @since 2.0.0
    */
   override def add(v: jl.Double): Unit = {
@@ -390,6 +397,7 @@ class DoubleAccumulator extends AccumulatorV2[jl.Double, jl.Double] {
 
   /**
    * Adds v to the accumulator, i.e. increment sum by v and count by 1.
+   *
    * @since 2.0.0
    */
   def add(v: Double): Unit = {
@@ -399,18 +407,21 @@ class DoubleAccumulator extends AccumulatorV2[jl.Double, jl.Double] {
 
   /**
    * Returns the number of elements added to the accumulator.
+   *
    * @since 2.0.0
    */
   def count: Long = _count
 
   /**
    * Returns the sum of elements added to the accumulator.
+   *
    * @since 2.0.0
    */
   def sum: Double = _sum
 
   /**
    * Returns the average of elements added to the accumulator.
+   *
    * @since 2.0.0
    */
   def avg: Double = _sum / _count
@@ -444,7 +455,9 @@ class CollectionAccumulator[T] extends AccumulatorV2[T, java.util.List[T]] {
 
   override def copy(): CollectionAccumulator[T] = {
     val newAcc = new CollectionAccumulator[T]
-    newAcc._list.addAll(_list)
+    _list.synchronized {
+      newAcc._list.addAll(_list)
+    }
     newAcc
   }
 
