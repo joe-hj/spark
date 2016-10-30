@@ -24,7 +24,6 @@ import java.util.{ArrayList => JArrayList, List => JList, Map => JMap, Set => JS
 import java.util.concurrent.TimeUnit
 
 import scala.collection.JavaConverters._
-import scala.util.Try
 import scala.util.control.NonFatal
 
 import org.apache.hadoop.fs.{FileSystem, Path}
@@ -586,19 +585,7 @@ private[client] class Shim_v0_13 extends Shim_v0_12 {
         getAllPartitionsMethod.invoke(hive, table).asInstanceOf[JSet[Partition]]
       } else {
         logDebug(s"Hive metastore filter is '$filter'.")
-        try {
-          getPartitionsByFilterMethod.invoke(hive, table, filter)
-            .asInstanceOf[JArrayList[Partition]]
-        } catch {
-          case e: InvocationTargetException =>
-            // SPARK-18167 retry to investigate the flaky test. This should be reverted before
-            // the release is cut.
-            val retry = Try(getPartitionsByFilterMethod.invoke(hive, table, filter))
-            val full = Try(getAllPartitionsMethod.invoke(hive, table))
-            logError("getPartitionsByFilter failed, retry success = " + retry.isSuccess)
-            logError("getPartitionsByFilter failed, full fetch success = " + full.isSuccess)
-            throw e
-        }
+        getPartitionsByFilterMethod.invoke(hive, table, filter).asInstanceOf[JArrayList[Partition]]
       }
 
     partitions.asScala.toSeq
