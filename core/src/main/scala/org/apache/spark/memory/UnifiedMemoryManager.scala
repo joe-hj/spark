@@ -108,9 +108,23 @@ private[spark] class UnifiedMemoryManager private[memory] (
         // storage. We can reclaim any free memory from the storage pool. If the storage pool
         // has grown to become larger than `storageRegionSize`, we can evict blocks and reclaim
         // the memory that storage has borrowed from execution.
+        val minStorageReginSize = (storageRegionSize * 0.01).toLong
+        logInfo(s"storagePool.memoryFree: " + storagePool.memoryFree +
+          ", storagePool.poolSize:" + storagePool.poolSize +
+          ", storageRegionSize:" + storageRegionSize +
+          ", minStorageReginSize:" + minStorageReginSize
+        )
+        if (storagePool.poolSize < minStorageReginSize) {
+          return
+        }
         val memoryReclaimableFromStorage = math.max(
-          storagePool.memoryFree,
+          storagePool.memoryFree - minStorageReginSize,
           storagePool.poolSize - storageRegionSize)
+        logInfo(s"storagePool.memoryFree: " + storagePool.memoryFree +
+          ", poolSize-storageRegionSize:" + (storagePool.poolSize - storageRegionSize) +
+          ", memoryReclaimableFromStorage:" + memoryReclaimableFromStorage
+        )
+
         if (memoryReclaimableFromStorage > 0) {
           // Only reclaim as much space as is necessary and available:
           val spaceToReclaim = storagePool.freeSpaceToShrinkPool(
@@ -158,6 +172,16 @@ private[spark] class UnifiedMemoryManager private[memory] (
         offHeapStorageMemoryPool,
         maxOffHeapMemory)
     }
+
+    logInfo(s"onHeapExecutionMemoryPool.poolSize: " + onHeapExecutionMemoryPool.poolSize +
+      ", onHeapStorageMemoryPool.poolSize: " + this.onHeapStorageMemoryPool.poolSize)
+    logInfo(s"executionMemoryUsed: " + this.executionMemoryUsed +
+      ", storageMemoryUsed: " + this.storageMemoryUsed)
+    logInfo(s"executionPool.memoryFree: " + executionPool.memoryFree +
+      ", storagePool.memoryFree: " + storagePool.memoryFree)
+    logInfo(s"blockId.isBroadcast: " + blockId.isBroadcast + ", numBytes: " + numBytes +
+      ", maxMemory: " + maxMemory)
+
     if (numBytes > maxMemory) {
       // Fail fast if the block simply won't fit
       logInfo(s"Will not store $blockId as the required space ($numBytes bytes) exceeds our " +
