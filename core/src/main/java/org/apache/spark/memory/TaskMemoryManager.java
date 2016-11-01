@@ -342,6 +342,9 @@ public class TaskMemoryManager {
       final int pageNumber = decodePageNumber(pagePlusOffsetAddress);
       assert (pageNumber >= 0 && pageNumber < PAGE_TABLE_SIZE);
       final MemoryBlock page = pageTable[pageNumber];
+      if (null == page || null == page.getBaseObject()) {
+        logger.info("(null == page):" + (null == page));
+      }
       assert (page != null);
       assert (page.getBaseObject() != null);
       return page.getBaseObject();
