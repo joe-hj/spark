@@ -344,7 +344,11 @@ public class TaskMemoryManager {
       final MemoryBlock page = pageTable[pageNumber];
       if (null == page || null == page.getBaseObject()) {
         for (MemoryBlock mb : pageTable) {
-          logger.info("pageNumber:" + mb.pageNumber + ", size:" + mb.size());
+          if (null != mb) {
+            logger.info("pageNumber:" + mb.pageNumber + ", size:" + mb.size());
+          } else {
+            logger.info("MemoryBlock is null.");
+          }
         }
         logger.info("decodePageNumber is: " + decodePageNumber(pagePlusOffsetAddress));
       }
