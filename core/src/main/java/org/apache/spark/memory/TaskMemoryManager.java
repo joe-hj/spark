@@ -346,7 +346,7 @@ public class TaskMemoryManager {
         for (MemoryBlock mb : pageTable) {
           logger.info("pageNumber:" + mb.pageNumber + ", size:" + mb.size());
         }
-        logger.info("(null == page): " + (null == page));
+        logger.info("decodePageNumber is: " + decodePageNumber(pagePlusOffsetAddress));
       }
       assert (page != null);
       assert (page.getBaseObject() != null);
