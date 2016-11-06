@@ -55,6 +55,8 @@ private[spark] class UnifiedMemoryManager private[memory] (
     onHeapStorageRegionSize,
     maxHeapMemory - onHeapStorageRegionSize) {
 
+  private val RESERVED_STORAGE_REGION_BYTES = 10 * 1024 * 1024
+
   private def assertInvariants(): Unit = {
     assert(onHeapExecutionMemoryPool.poolSize + onHeapStorageMemoryPool.poolSize == maxHeapMemory)
     assert(
@@ -108,14 +110,12 @@ private[spark] class UnifiedMemoryManager private[memory] (
         // storage. We can reclaim any free memory from the storage pool. If the storage pool
         // has grown to become larger than `storageRegionSize`, we can evict blocks and reclaim
         // the memory that storage has borrowed from execution.
-        val remainderStorageRegionSize = (storageRegionSize * 0.01).toLong
         logInfo(s"storagePool.memoryFree: " + storagePool.memoryFree +
           ", storagePool.poolSize:" + storagePool.poolSize +
-          ", storageRegionSize:" + storageRegionSize +
-          ", remainderStorageRegionSize:" + remainderStorageRegionSize
+          ", storageRegionSize:" + storageRegionSize
         )
         val memoryReclaimableFromStorage = math.max(
-          storagePool.memoryFree,
+          storagePool.memoryFree - RESERVED_STORAGE_REGION_BYTES,
           storagePool.poolSize - storageRegionSize)
         if (memoryReclaimableFromStorage > 0) {
           // Only reclaim as much space as is necessary and available:
