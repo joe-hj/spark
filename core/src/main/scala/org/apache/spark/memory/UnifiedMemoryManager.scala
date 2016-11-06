@@ -108,6 +108,12 @@ private[spark] class UnifiedMemoryManager private[memory] (
         // storage. We can reclaim any free memory from the storage pool. If the storage pool
         // has grown to become larger than `storageRegionSize`, we can evict blocks and reclaim
         // the memory that storage has borrowed from execution.
+        val remainderStorageRegionSize = (storageRegionSize * 0.01).toLong
+        logInfo(s"storagePool.memoryFree: " + storagePool.memoryFree +
+          ", storagePool.poolSize:" + storagePool.poolSize +
+          ", storageRegionSize:" + storageRegionSize +
+          ", remainderStorageRegionSize:" + remainderStorageRegionSize
+        )
         val memoryReclaimableFromStorage = math.max(
           storagePool.memoryFree,
           storagePool.poolSize - storageRegionSize)
@@ -158,6 +164,14 @@ private[spark] class UnifiedMemoryManager private[memory] (
         offHeapStorageMemoryPool,
         maxOffHeapMemory)
     }
+    logInfo("onHeapExecutionMemoryPool.poolSize: " + onHeapExecutionMemoryPool.poolSize +
+      ", onHeapStorageMemoryPool.poolSize: " + onHeapStorageMemoryPool.poolSize)
+    logInfo("executionMemoryUsed: " + executionMemoryUsed +
+      ", storageMemoryUsed: " + storageMemoryUsed)
+    logInfo("executionPool.memoryFree: " + executionPool.memoryFree +
+      ", storagePool.memoryFree: " + storagePool.memoryFree)
+    logInfo("blockId.isBroadcast: " + blockId.isBroadcast + ", numBytes: " + numBytes +
+      ", maxMemory: " + maxMemory)
     if (numBytes > maxMemory) {
       // Fail fast if the block simply won't fit
       logInfo(s"Will not store $blockId as the required space ($numBytes bytes) exceeds our " +
