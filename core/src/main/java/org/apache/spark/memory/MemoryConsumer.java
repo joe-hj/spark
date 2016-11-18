@@ -126,7 +126,7 @@ public abstract class MemoryConsumer {
         taskMemoryManager.freePage(page, this);
       }
       taskMemoryManager.showMemoryUsage();
-      throw new OutOfMemoryError("Unable to acquire " + required + " bytes of memory, got " + got);
+      throw new OutOfMemoryError("joe.hj Unable to acquire " + required + " bytes of memory, got " + got);
     }
     used += page.size();
     return page;

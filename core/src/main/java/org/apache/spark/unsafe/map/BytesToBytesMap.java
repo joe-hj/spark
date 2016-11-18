@@ -692,6 +692,7 @@ public final class BytesToBytesMap extends MemoryConsumer {
         // The map could be reused from last spill (because of no enough memory to grow),
         // then we don't try to grow again if hit the `growthThreshold`.
         || !canGrowArray && numKeys > growthThreshold) {
+          logger.trace("joe.hj numkeys:[" + numKeys + "] - growthThreshold: [" + growthThreshold + "] - canGrowArray [" + canGrowArray + "]" );
         return false;
       }
 
@@ -738,6 +739,7 @@ public final class BytesToBytesMap extends MemoryConsumer {
           try {
             growAndRehash();
           } catch (OutOfMemoryError oom) {
+              logger.trace("joe.hj numkeys:[" + numKeys + "] - growthThreshold: [" + growthThreshold + "] - canGrowArray:[" + canGrowArray + "] - longArrya.size:[" + longArray.size() + "] - MAX_CAPACITY:[" + MAX_CAPACITY + "]");
             canGrowArray = false;
           }
         }
@@ -754,6 +756,7 @@ public final class BytesToBytesMap extends MemoryConsumer {
     try {
       currentPage = allocatePage(required);
     } catch (OutOfMemoryError e) {
+        logger.trace("joe.hj out of memory error in acquireNewPage , required size:[" + required + "]");
       return false;
     }
     dataPages.add(currentPage);

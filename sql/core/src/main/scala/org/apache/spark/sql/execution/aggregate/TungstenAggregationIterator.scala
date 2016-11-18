@@ -188,14 +188,17 @@ class TungstenAggregationIterator(
         val groupingKey = groupingProjection.apply(newInput)
         var buffer: UnsafeRow = null
         if (i < fallbackStartsAt._2) {
+          log.info(s"joe.hj test i is: ${i}" + s"fallbackStartsAt._2: ${fallbackStartsAt._2}")
           buffer = hashMap.getAggregationBufferFromUnsafeRow(groupingKey)
         }
         if (buffer == null) {
           val sorter = hashMap.destructAndCreateExternalSorter()
           if (externalSorter == null) {
             externalSorter = sorter
+            log.info(s"joe.hj test create sorter1")
           } else {
             externalSorter.merge(sorter)
+            log.info(s"joe.hj test create sorter2")
           }
           i = 0
           buffer = hashMap.getAggregationBufferFromUnsafeRow(groupingKey)
